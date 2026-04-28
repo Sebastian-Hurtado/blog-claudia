@@ -1,0 +1,41 @@
+:80 {
+    encode gzip
+
+    handle_path /static/* {
+        root * /srv/backend
+        file_server
+    }
+
+    handle_path /media/* {
+        root * /srv/backend/media
+        file_server
+    }
+
+    handle /cms* {
+        reverse_proxy backend:8000
+    }
+
+    handle /admin* {
+        reverse_proxy backend:8000
+    }
+
+    handle /documents* {
+        reverse_proxy backend:8000
+    }
+
+    handle /wagtail-api* {
+        reverse_proxy backend:8000
+    }
+
+    handle /api/comments* {
+        reverse_proxy backend:8000
+    }
+
+    handle /api/consultation-requests* {
+        reverse_proxy backend:8000
+    }
+
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

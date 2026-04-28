@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${PUBLIC_HOST},localhost,127.0.0.1
+      CSRF_TRUSTED_ORIGINS: http://${PUBLIC_HOST}
+      CORS_ALLOWED_ORIGINS: http://${PUBLIC_HOST}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      WAGTAILAPI_BASE_URL: http://${PUBLIC_HOST}
+      WAGTAILADMIN_BASE_URL: http://${PUBLIC_HOST}
+      CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
+    volumes:
+      - backend_media:/app/media
+      - backend_static:/app/staticfiles
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://${PUBLIC_HOST}
+        AUTH_URL: http://${PUBLIC_HOST}
+        NEXTAUTH_URL: http://${PUBLIC_HOST}
+        AUTH_SECRET: ${AUTH_SECRET}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+        GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+        CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: http://${PUBLIC_HOST}
+      AUTH_URL: http://${PUBLIC_HOST}
+      NEXTAUTH_URL: http://${PUBLIC_HOST}
+      AUTH_SECRET: ${AUTH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - backend_static:/srv/backend/static:ro
+      - backend_media:/srv/backend/media:ro
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+  backend_media:
+  backend_static:

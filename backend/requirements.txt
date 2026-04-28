@@ -8,3 +8,5 @@ django-cors-headers
 django-taggit
 django-modelcluster
 psycopg[binary]
+gunicorn
+whitenoise
