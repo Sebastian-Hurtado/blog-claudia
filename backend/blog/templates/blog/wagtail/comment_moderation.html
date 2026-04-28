@@ -1,0 +1,88 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block title %}Moderacion de comentarios{% endblock %}
+
+{% block content %}
+    <div class="nice-padding">
+        <div class="w-flex w-items-center w-gap-4 w-mb-8">
+            {% icon name="comment" classname="w-text-primary" %}
+            <div>
+                <h1 class="w-m-0">Moderacion de comentarios</h1>
+                <p class="w-m-0 w-text-meta">
+                    Revisa y aprueba manualmente los comentarios pendientes.
+                </p>
+            </div>
+        </div>
+
+        <section class="w-mb-12">
+            <h2 class="w-text-xl w-font-semibold w-mb-4">
+                Pendientes ({{ pending_comments|length }})
+            </h2>
+
+            {% if pending_comments %}
+                <div class="w-space-y-4">
+                    {% for comment in pending_comments %}
+                        <article class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                            <div class="w-flex w-items-start w-justify-between w-gap-6">
+                                <div class="w-space-y-2">
+                                    <p class="w-m-0 w-text-sm w-text-text-label">
+                                        <strong>Post:</strong> {{ comment.post.title }}
+                                    </p>
+                                    <p class="w-m-0 w-text-sm w-text-text-label">
+                                        <strong>Autor:</strong> {{ comment.author_name }} ({{ comment.author_email }})
+                                    </p>
+                                    <p class="w-m-0 w-text-sm w-text-text-meta">
+                                        <strong>Fecha:</strong> {{ comment.created_at|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <div class="w-mt-4">
+                                        <strong class="w-text-text-label">Contenido</strong>
+                                        <p class="w-mt-2 w-mb-0 w-whitespace-pre-line w-text-text-label">
+                                            {{ comment.content }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="w-flex w-flex-col w-gap-2">
+                                    <form method="post" action="{% url 'blog_comment_approve' comment.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="button button-primary">Aprobar</button>
+                                    </form>
+                                    <form method="post" action="{% url 'blog_comment_reject' comment.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="button button-secondary">Rechazar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="w-text-text-meta">No hay comentarios pendientes por moderar.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2 class="w-text-xl w-font-semibold w-mb-4">Aprobados recientemente</h2>
+
+            {% if approved_comments %}
+                <div class="w-space-y-4">
+                    {% for comment in approved_comments %}
+                        <article class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-4">
+                            <p class="w-m-0 w-text-text-label">
+                                <strong>{{ comment.author_name }}</strong> en
+                                <strong>{{ comment.post.title }}</strong>
+                            </p>
+                            <p class="w-my-2 w-whitespace-pre-line w-text-text-label">{{ comment.content }}</p>
+                            <p class="w-m-0 w-text-sm w-text-text-meta">
+                                {{ comment.created_at|date:"d/m/Y H:i" }}
+                            </p>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="w-text-text-meta">Todavia no hay comentarios aprobados.</p>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

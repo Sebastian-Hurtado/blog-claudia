@@ -1,0 +1,76 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block title %}Detalle de consultoria{% endblock %}
+
+{% block content %}
+    <div class="nice-padding">
+        <div class="w-flex w-items-center w-justify-between w-gap-4 w-mb-8">
+            <div>
+                <h1 class="w-m-0">Detalle de solicitud</h1>
+                <p class="w-m-0 w-text-meta">
+                    {{ consultation.full_name }} - {{ consultation.subject }}
+                </p>
+            </div>
+            <a href="{% url 'blog_consultation_list' %}" class="button button-secondary">Volver</a>
+        </div>
+
+        <div class="w-grid w-gap-8 lg:w-grid-cols-[1.3fr_0.9fr]">
+            <section class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                <div class="w-space-y-3">
+                    <p class="w-m-0 w-text-text-label"><strong>Nombre:</strong> {{ consultation.full_name }}</p>
+                    <p class="w-m-0 w-text-text-label"><strong>Email:</strong> {{ consultation.email }}</p>
+                    <p class="w-m-0 w-text-text-label"><strong>Telefono:</strong> {{ consultation.phone }}</p>
+                    <p class="w-m-0 w-text-text-meta">
+                        <strong>Creada:</strong> {{ consultation.created_at|date:"d/m/Y H:i" }} |
+                        <strong>Actualizada:</strong> {{ consultation.updated_at|date:"d/m/Y H:i" }}
+                    </p>
+                    <div class="w-mt-4">
+                        <strong class="w-text-text-label">Mensaje</strong>
+                        <p class="w-mt-2 w-mb-0 w-whitespace-pre-line w-text-text-label">{{ consultation.message }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                <form method="post" action="{% url 'blog_consultation_update' consultation.id %}" class="w-space-y-5">
+                    {% csrf_token %}
+                    <div>
+                        <label for="status"><strong>Estado</strong></label>
+                        <select id="status" name="status">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if consultation.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="internal_notes"><strong>Notas internas</strong></label>
+                        <textarea id="internal_notes" name="internal_notes" rows="8">{{ consultation.internal_notes }}</textarea>
+                    </div>
+
+                    <button type="submit" class="button button-primary">Guardar cambios</button>
+                </form>
+
+                <div class="w-mt-8">
+                    <strong class="w-text-text-label">Adjuntos</strong>
+                    {% if consultation.attachments.all %}
+                        <ul class="w-mt-3 w-space-y-2">
+                            {% for attachment in consultation.attachments.all %}
+                                <li>
+                                    <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
+                                        {{ attachment.filename }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="w-mt-2 w-text-text-meta">Esta solicitud no tiene adjuntos.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+{% endblock %}

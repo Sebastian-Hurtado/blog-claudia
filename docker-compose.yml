@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: mi_blog_db
+    environment:
+      POSTGRES_DB: miblog
+      POSTGRES_USER: miblog_user
+      POSTGRES_PASSWORD: miblog_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

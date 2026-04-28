@@ -1,0 +1,10 @@
+# Python dependencies for the Django/Wagtail backend.
+
+Django
+wagtail
+djangorestframework
+django-filter
+django-cors-headers
+django-taggit
+django-modelcluster
+psycopg[binary]
