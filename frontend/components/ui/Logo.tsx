@@ -10,7 +10,7 @@ export default function Logo() {
   return (
     <Link href="/inicio" className="flex items-center gap-3 group shrink-0">
       <Image
-        src="/logo_final.png"
+        src="/logo-blog.png"
         alt={`Logo de ${SITE_CONFIG.owner}`}
         width={50}
         height={50}
