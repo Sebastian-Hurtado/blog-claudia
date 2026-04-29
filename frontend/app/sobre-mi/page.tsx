@@ -311,39 +311,47 @@ export default function SobreMiPage() {
 
           <div className="mb-14">
             <SectionTitle title="Experiencia Profesional" badge="EP" />
-            <div className="grid gap-6">
+            <div className="relative space-y-7 before:absolute before:left-4 before:top-2 before:bottom-2 before:w-px before:bg-primary/20 md:before:left-6">
               {experienciaProfesional.map((exp) => (
                 <div
                   key={exp.institucion}
-                  className="bg-white rounded-xl shadow-md overflow-hidden"
+                  className="relative pl-12 md:pl-16"
                 >
-                  <div className="bg-surface px-6 py-4 border-b border-border">
-                    <h3 className="text-lg font-bold text-heading">
-                      {exp.institucion}
-                    </h3>
-                    {exp.subtitulo && (
-                      <p className="text-sm text-muted mt-1">{exp.subtitulo}</p>
-                    )}
-                  </div>
-                  <div className="px-6 py-4 divide-y divide-border/50">
-                    {exp.cargos.map((cargo) => (
-                      <div key={`${cargo.titulo}-${cargo.periodo}`} className="py-3 first:pt-0 last:pb-0">
-                        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                          <p className="font-semibold text-primary text-sm leading-snug">
-                            {cargo.titulo}
-                          </p>
-                          <span className="text-xs text-muted whitespace-nowrap bg-surface px-3 py-1 rounded-full self-start">
-                            {cargo.periodo}
-                          </span>
+                  <span className="absolute left-0 top-6 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white bg-primary shadow-md md:left-2" />
+                  <article className="overflow-hidden rounded-2xl border border-border bg-white shadow-md transition-shadow hover:shadow-lg">
+                    <div className="border-b border-border/70 bg-gradient-to-r from-surface to-white px-6 py-5">
+                      <h3 className="text-lg font-bold text-heading md:text-xl">
+                        {exp.institucion}
+                      </h3>
+                      {exp.subtitulo && (
+                        <p className="mt-1 text-sm text-muted">
+                          {exp.subtitulo}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-4 p-6">
+                      {exp.cargos.map((cargo) => (
+                        <div
+                          key={`${cargo.titulo}-${cargo.periodo}`}
+                          className="rounded-xl border border-border/60 bg-surface/40 p-4"
+                        >
+                          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                            <p className="font-semibold text-primary leading-snug">
+                              {cargo.titulo}
+                            </p>
+                            <span className="inline-flex w-fit rounded-full bg-white px-3 py-1 text-xs font-medium text-muted shadow-sm ring-1 ring-border/70">
+                              {cargo.periodo}
+                            </span>
+                          </div>
+                          {cargo.nota && (
+                            <p className="mt-3 border-l-2 border-primary/30 pl-3 text-sm italic leading-6 text-muted">
+                              {cargo.nota}
+                            </p>
+                          )}
                         </div>
-                        {cargo.nota && (
-                          <p className="text-xs text-muted italic mt-2">
-                            {cargo.nota}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </article>
                 </div>
               ))}
             </div>

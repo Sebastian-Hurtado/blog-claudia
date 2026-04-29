@@ -1,7 +1,7 @@
 :80 {
     encode gzip
 
-    handle_path /static/* {
+    handle /static/* {
         root * /srv/backend
         file_server
     }
