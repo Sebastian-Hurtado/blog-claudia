@@ -19,7 +19,7 @@ export default async function HomePageContent() {
             <h1 className="text-3xl font-bold text-heading">Noticias</h1>
             <div className="mt-3 w-16 h-1 bg-primary rounded-full" />
             <p className="mt-4 text-body">
-              Publicaciones recientes destacadas desde el panel de Wagtail.
+              Novedades, reflexiones y temas de interés general.
             </p>
           </div>
 
