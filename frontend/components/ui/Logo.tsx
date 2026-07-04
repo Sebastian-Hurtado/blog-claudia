@@ -19,7 +19,7 @@ export default function Logo() {
       />
 
       {/* Nombre del blog */}
-      <span className="text-white text-2xl font-bold tracking-wide">
+      <span className="text-white text-lg font-bold tracking-wide sm:text-xl lg:text-2xl">
         {SITE_CONFIG.name}
       </span>
     </Link>

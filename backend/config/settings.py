@@ -119,7 +119,7 @@ DATABASES = {
         "USER": os.environ.get("POSTGRES_USER", "miblog_user"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "miblog_pass"),
         "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "PORT": os.environ.get("POSTGRES_PORT", "5433"),
     }
 }
 
@@ -187,8 +187,9 @@ REST_FRAMEWORK = {
     ],
 }
 
-CONSULTATION_PROXY_SECRET = os.environ.get(
-    "CONSULTATION_PROXY_SECRET",
-    "dev-consultation-secret",
-)
+INTERNAL_API_SECRET = os.environ.get(
+    "INTERNAL_API_SECRET",
+    "",
+) or os.environ.get("CONSULTATION_PROXY_SECRET", "dev-consultation-secret")
+CONSULTATION_PROXY_SECRET = INTERNAL_API_SECRET
 

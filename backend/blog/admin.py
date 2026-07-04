@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Comment, ConsultationAttachment, ConsultationRequest
+from .models import (
+    Comment,
+    ConsultationAttachment,
+    ConsultationRequest,
+    GuestPostAttachment,
+    GuestPostSubmission,
+)
 
 
 @admin.register(Comment)
@@ -38,4 +44,33 @@ class ConsultationRequestAdmin(admin.ModelAdmin):
 class ConsultationAttachmentAdmin(admin.ModelAdmin):
     list_display = ("request", "file", "uploaded_at")
     search_fields = ("request__full_name", "request__email", "file")
+    readonly_fields = ("uploaded_at",)
+
+
+class GuestPostAttachmentInline(admin.TabularInline):
+    model = GuestPostAttachment
+    extra = 0
+    readonly_fields = ("uploaded_at",)
+
+
+@admin.register(GuestPostSubmission)
+class GuestPostSubmissionAdmin(admin.ModelAdmin):
+    list_display = (
+        "title",
+        "full_name",
+        "email",
+        "status",
+        "publish_anonymously",
+        "created_at",
+    )
+    list_filter = ("status", "publish_anonymously", "created_at")
+    search_fields = ("title", "summary", "content", "full_name", "email")
+    readonly_fields = ("created_at", "updated_at")
+    inlines = [GuestPostAttachmentInline]
+
+
+@admin.register(GuestPostAttachment)
+class GuestPostAttachmentAdmin(admin.ModelAdmin):
+    list_display = ("submission", "file", "uploaded_at")
+    search_fields = ("submission__title", "submission__full_name", "file")
     readonly_fields = ("uploaded_at",)

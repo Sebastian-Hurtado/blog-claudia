@@ -64,6 +64,12 @@ export default async function BlogPostPage({ params }: Props) {
             {post.title}
           </h1>
 
+          {post.author_display_name && (
+            <p className="mb-6 text-sm font-medium text-muted">
+              Por {post.author_display_name}
+            </p>
+          )}
+
           {post.intro && (
             <p className="text-lg text-body mb-8 italic border-l-4 border-primary pl-4">
               {post.intro}

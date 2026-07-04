@@ -26,6 +26,7 @@ services:
       POSTGRES_PORT: "5432"
       WAGTAILAPI_BASE_URL: ${PUBLIC_URL}
       WAGTAILADMIN_BASE_URL: ${PUBLIC_URL}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
       CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
     volumes:
       - backend_media:/app/media
@@ -43,6 +44,7 @@ services:
         AUTH_SECRET: ${AUTH_SECRET}
         GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
         GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+        INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
         CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
     restart: unless-stopped
     environment:
@@ -53,6 +55,7 @@ services:
       AUTH_SECRET: ${AUTH_SECRET}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET:-}
       CONSULTATION_PROXY_SECRET: ${CONSULTATION_PROXY_SECRET}
     depends_on:
       - backend
@@ -62,10 +65,13 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - backend_static:/srv/backend/static:ro
       - backend_media:/srv/backend/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - frontend
       - backend
@@ -74,3 +80,5 @@ volumes:
   postgres_data:
   backend_media:
   backend_static:
+  caddy_data:
+  caddy_config:

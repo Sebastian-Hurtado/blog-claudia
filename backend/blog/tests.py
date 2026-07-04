@@ -12,6 +12,7 @@ from .models import (
     BlogPage,
     Comment,
     ConsultationRequest,
+    GuestPostSubmission,
     HomePage,
     NewsIndexPage,
     NewsPage,
@@ -224,7 +225,10 @@ class NewsPageTests(BaseBlogTestCase):
         self.assertEqual(payload["items"][1]["title"], "Noticia antigua")
 
 
-@override_settings(CONSULTATION_PROXY_SECRET="test-consultation-secret")
+@override_settings(
+    CONSULTATION_PROXY_SECRET="test-consultation-secret",
+    INTERNAL_API_SECRET="test-consultation-secret",
+)
 class ConsultationRequestTests(BaseBlogTestCase):
     def setUp(self):
         super().setUp()
@@ -387,3 +391,191 @@ class ConsultationRequestTests(BaseBlogTestCase):
         self.assertEqual(len(payload), 1)
         self.assertEqual(payload[0]["subject"], "Consulta laboral")
         self.assertEqual(payload[0]["status"], ConsultationRequest.Status.IN_REVIEW)
+
+
+@override_settings(
+    CONSULTATION_PROXY_SECRET="test-consultation-secret",
+    INTERNAL_API_SECRET="test-consultation-secret",
+)
+class GuestPostSubmissionTests(BaseBlogTestCase):
+    def setUp(self):
+        super().setUp()
+        self.api_client = APIClient()
+        self.blog_index = BlogIndexPage(title="Blog", slug="blog")
+        self.home_page.add_child(instance=self.blog_index)
+        self.blog_index.save_revision().publish()
+
+    def make_file(self, name, content=b"file", content_type="application/octet-stream"):
+        return SimpleUploadedFile(name, content, content_type=content_type)
+
+    def valid_payload(self):
+        return {
+            "full_name": "Laura Gomez",
+            "email": "laura@example.com",
+            "author_image": "https://example.com/avatar.png",
+            "title": "Reflexion laboral",
+            "summary": "Resumen breve del articulo.",
+            "content": "Contenido completo del articulo invitado.",
+            "suggested_tags": "derecho laboral, opinion",
+            "publish_anonymously": "true",
+            "author_confirmed": "true",
+        }
+
+    def test_create_guest_post_submission_starts_pending(self):
+        response = self.api_client.post(
+            "/api/guest-post-submissions/",
+            data={
+                **self.valid_payload(),
+                "attachments": [
+                    self.make_file("soporte.pdf", b"pdf", "application/pdf"),
+                    self.make_file("imagen.jpg", b"jpg", "image/jpeg"),
+                ],
+            },
+            format="multipart",
+            HTTP_X_CONSULTATION_PROXY_SECRET="test-consultation-secret",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["status"], GuestPostSubmission.Status.PENDING)
+
+        submission = GuestPostSubmission.objects.get(email="laura@example.com")
+        self.assertTrue(submission.publish_anonymously)
+        self.assertEqual(submission.attachments.count(), 2)
+
+    def test_create_guest_post_submission_rejects_missing_secret(self):
+        response = self.api_client.post(
+            "/api/guest-post-submissions/",
+            data=self.valid_payload(),
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_create_guest_post_submission_rejects_more_than_five_files(self):
+        attachments = [
+            self.make_file(f"archivo-{index}.pdf", b"pdf", "application/pdf")
+            for index in range(6)
+        ]
+
+        response = self.api_client.post(
+            "/api/guest-post-submissions/",
+            data={**self.valid_payload(), "attachments": attachments},
+            format="multipart",
+            HTTP_X_CONSULTATION_PROXY_SECRET="test-consultation-secret",
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_guest_post_submission_rejects_invalid_extension(self):
+        response = self.api_client.post(
+            "/api/guest-post-submissions/",
+            data={
+                **self.valid_payload(),
+                "attachments": [self.make_file("nota.txt", b"txt", "text/plain")],
+            },
+            format="multipart",
+            HTTP_X_CONSULTATION_PROXY_SECRET="test-consultation-secret",
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_guest_post_submission_rejects_large_file(self):
+        response = self.api_client.post(
+            "/api/guest-post-submissions/",
+            data={
+                **self.valid_payload(),
+                "attachments": [
+                    self.make_file(
+                        "soporte.pdf",
+                        b"x" * (10 * 1024 * 1024 + 1),
+                        "application/pdf",
+                    )
+                ],
+            },
+            format="multipart",
+            HTTP_X_CONSULTATION_PROXY_SECRET="test-consultation-secret",
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_list_guest_post_submissions_returns_only_matching_email(self):
+        GuestPostSubmission.objects.create(
+            full_name="Laura Gomez",
+            email="laura@example.com",
+            title="Articulo propio",
+            summary="Resumen",
+            content="Contenido",
+            status=GuestPostSubmission.Status.IN_REVIEW,
+        )
+        GuestPostSubmission.objects.create(
+            full_name="Otra Persona",
+            email="otra@example.com",
+            title="Articulo ajeno",
+            summary="Resumen",
+            content="Contenido",
+        )
+
+        response = self.api_client.get(
+            "/api/guest-post-submissions/",
+            data={"email": "laura@example.com"},
+            HTTP_X_CONSULTATION_PROXY_SECRET="test-consultation-secret",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["title"], "Articulo propio")
+        self.assertEqual(payload[0]["status"], GuestPostSubmission.Status.IN_REVIEW)
+
+    def test_wagtail_update_can_reject_guest_post(self):
+        submission = GuestPostSubmission.objects.create(
+            full_name="Laura Gomez",
+            email="laura@example.com",
+            title="Articulo a rechazar",
+            summary="Resumen",
+            content="Contenido",
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("blog_guest_post_update", args=[submission.id]),
+            data={
+                "status": GuestPostSubmission.Status.REJECTED,
+                "editorial_notes": "No se ajusta a la linea editorial.",
+            },
+        )
+
+        submission.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(submission.status, GuestPostSubmission.Status.REJECTED)
+        self.assertEqual(
+            submission.editorial_notes,
+            "No se ajusta a la linea editorial.",
+        )
+
+    def test_wagtail_create_draft_generates_unpublished_blog_page(self):
+        submission = GuestPostSubmission.objects.create(
+            full_name="Laura Gomez",
+            email="laura@example.com",
+            title="Articulo aprobado",
+            summary="Resumen para intro",
+            content="<p>Contenido para el blog</p>",
+            suggested_tags="derecho laboral, opinion",
+            publish_anonymously=True,
+        )
+        self.client.force_login(self.admin_user)
+
+        response = self.client.post(
+            reverse("blog_guest_post_create_draft", args=[submission.id])
+        )
+
+        submission.refresh_from_db()
+        blog_page = submission.created_blog_page
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNotNone(blog_page)
+        self.assertEqual(submission.status, GuestPostSubmission.Status.DRAFT_CREATED)
+        self.assertFalse(blog_page.live)
+        self.assertEqual(blog_page.author_display_name, "Autor anonimo")
+        self.assertEqual(blog_page.intro, "Resumen para intro")
+        self.assertEqual(sorted(tag.name for tag in blog_page.tags.all()), ["derecho laboral", "opinion"])

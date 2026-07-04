@@ -7,6 +7,8 @@ import type {
   CommentSubmissionResponse,
   ConsultationRequestSummary,
   ConsultationSubmissionResponse,
+  GuestPostSubmissionResponse,
+  GuestPostSubmissionSummary,
 } from "./types";
 import { API_BASE_URL, API_ENDPOINTS, SECTION_TAGS } from "./constants";
 
@@ -46,7 +48,7 @@ async function fetchAPI<T>(url: string): Promise<T> {
  */
 export async function getBlogPosts(): Promise<BlogPost[]> {
   const excludeTags = SECTION_TAGS.join(",");
-  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&fields=date,intro,body,main_image,tags,allow_comments&exclude_tags=${encodeURIComponent(excludeTags)}&order=-date`;
+  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&fields=date,intro,body,main_image,tags,author_display_name,allow_comments&exclude_tags=${encodeURIComponent(excludeTags)}&order=-date`;
   const data = await fetchAPI<WagtailPaginatedResponse<BlogPost>>(url);
   return data.items;
 }
@@ -55,7 +57,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
  * Obtener posts filtrados por tag (ej: "madres-comunitarias")
  */
 export async function getBlogPostsByTag(tag: string): Promise<BlogPost[]> {
-  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&fields=date,intro,body,main_image,tags,allow_comments&tags=${encodeURIComponent(tag)}&order=-date`;
+  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&fields=date,intro,body,main_image,tags,author_display_name,allow_comments&tags=${encodeURIComponent(tag)}&order=-date`;
   const data = await fetchAPI<WagtailPaginatedResponse<BlogPost>>(url);
   return data.items;
 }
@@ -66,7 +68,7 @@ export async function getBlogPostsByTag(tag: string): Promise<BlogPost[]> {
 export async function getBlogPostBySlug(
   slug: string
 ): Promise<BlogPost | null> {
-  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&slug=${slug}&fields=date,intro,body,main_image,allow_comments`;
+  const url = `${API_ENDPOINTS.pages}?type=blog.BlogPage&slug=${slug}&fields=date,intro,body,main_image,author_display_name,allow_comments`;
   const data = await fetchAPI<WagtailPaginatedResponse<BlogPost>>(url);
   return data.items[0] ?? null;
 }
@@ -75,7 +77,7 @@ export async function getBlogPostBySlug(
  * Obtener un post por su ID
  */
 export async function getBlogPostById(id: number): Promise<BlogPost> {
-  const url = `${API_ENDPOINTS.pages}${id}/?fields=date,intro,body,main_image,allow_comments`;
+  const url = `${API_ENDPOINTS.pages}${id}/?fields=date,intro,body,main_image,author_display_name,allow_comments`;
   return fetchAPI<BlogPost>(url);
 }
 
@@ -169,6 +171,38 @@ export async function getMyConsultationRequests(): Promise<
   const payload = await res.json().catch(() => ([]));
   if (!res.ok) {
     throw new Error(payload.error ?? "Error al cargar tus solicitudes");
+  }
+
+  return payload;
+}
+
+export async function createGuestPostSubmission(
+  formData: FormData
+): Promise<GuestPostSubmissionResponse> {
+  const res = await fetch("/api/publicar", {
+    method: "POST",
+    body: formData,
+  });
+
+  const payload = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(payload.error ?? "Error al enviar el articulo");
+  }
+
+  return payload;
+}
+
+export async function getMyGuestPostSubmissions(): Promise<
+  GuestPostSubmissionSummary[]
+> {
+  const res = await fetch("/api/publicar", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const payload = await res.json().catch(() => ([]));
+  if (!res.ok) {
+    throw new Error(payload.error ?? "Error al cargar tus articulos enviados");
   }
 
   return payload;

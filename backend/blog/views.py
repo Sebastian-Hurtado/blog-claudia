@@ -7,17 +7,37 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from .models import BlogPage, Comment, ConsultationAttachment, ConsultationRequest
+from .models import (
+    BlogPage,
+    Comment,
+    ConsultationAttachment,
+    ConsultationRequest,
+    GuestPostAttachment,
+    GuestPostSubmission,
+)
 from .serializers import (
     CommentCreateSerializer,
     CommentSerializer,
     ConsultationRequestCreateSerializer,
     ConsultationRequestListSerializer,
+    GuestPostSubmissionCreateSerializer,
+    GuestPostSubmissionListSerializer,
 )
 
 ALLOWED_CONSULTATION_EXTENSIONS = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg"}
 MAX_CONSULTATION_ATTACHMENTS = 5
 MAX_CONSULTATION_FILE_SIZE = 10 * 1024 * 1024
+ALLOWED_GUEST_POST_EXTENSIONS = ALLOWED_CONSULTATION_EXTENSIONS
+MAX_GUEST_POST_ATTACHMENTS = MAX_CONSULTATION_ATTACHMENTS
+MAX_GUEST_POST_FILE_SIZE = MAX_CONSULTATION_FILE_SIZE
+
+
+def has_valid_internal_secret(request):
+    secret = request.headers.get("X-Internal-Api-Secret") or request.headers.get(
+        "X-Consultation-Proxy-Secret",
+        "",
+    )
+    return secret == settings.INTERNAL_API_SECRET
 
 
 def health(request):
@@ -91,8 +111,7 @@ def create_consultation_request(request):
     desde el proxy del frontend.
     """
 
-    secret = request.headers.get("X-Consultation-Proxy-Secret", "")
-    if secret != settings.CONSULTATION_PROXY_SECRET:
+    if not has_valid_internal_secret(request):
         return Response(
             {"error": "No autorizado para crear solicitudes de consultoria."},
             status=status.HTTP_403_FORBIDDEN,
@@ -154,6 +173,85 @@ def create_consultation_request(request):
             "id": consultation.id,
             "status": consultation.status,
             "message": "Tu solicitud fue enviada correctamente. Pronto sera revisada.",
+        },
+        status=status.HTTP_201_CREATED,
+    )
+
+
+@api_view(["GET", "POST"])
+@parser_classes([MultiPartParser, FormParser])
+def guest_post_submissions(request):
+    """
+    GET/POST /api/guest-post-submissions/
+    Endpoint interno para listar o crear publicaciones invitadas
+    desde el proxy autenticado del frontend.
+    """
+
+    if not has_valid_internal_secret(request):
+        return Response(
+            {"error": "No autorizado para gestionar publicaciones invitadas."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if request.method == "GET":
+        email = request.GET.get("email", "").strip()
+        if not email:
+            return Response(
+                {"error": "Debes indicar el correo del autor."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        submissions = GuestPostSubmission.objects.filter(
+            email__iexact=email
+        ).order_by("-created_at")
+        serializer = GuestPostSubmissionListSerializer(submissions, many=True)
+        return Response(serializer.data)
+
+    serializer = GuestPostSubmissionCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    attachments = request.FILES.getlist("attachments")
+    if len(attachments) > MAX_GUEST_POST_ATTACHMENTS:
+        return Response(
+            {"error": f"Solo se permiten hasta {MAX_GUEST_POST_ATTACHMENTS} archivos."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    for attachment in attachments:
+        extension = os.path.splitext(attachment.name)[1].lower()
+        if extension not in ALLOWED_GUEST_POST_EXTENSIONS:
+            return Response(
+                {"error": f"Tipo de archivo no permitido: {attachment.name}."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if attachment.size > MAX_GUEST_POST_FILE_SIZE:
+            return Response(
+                {"error": f"El archivo {attachment.name} supera el maximo de 10 MB."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    submission = GuestPostSubmission.objects.create(
+        full_name=serializer.validated_data["full_name"],
+        email=serializer.validated_data["email"],
+        author_image=serializer.validated_data.get("author_image", ""),
+        title=serializer.validated_data["title"],
+        summary=serializer.validated_data["summary"],
+        content=serializer.validated_data["content"],
+        suggested_tags=serializer.validated_data.get("suggested_tags", ""),
+        publish_anonymously=serializer.validated_data["publish_anonymously"],
+    )
+
+    for attachment in attachments:
+        GuestPostAttachment.objects.create(
+            submission=submission,
+            file=attachment,
+        )
+
+    return Response(
+        {
+            "id": submission.id,
+            "status": submission.status,
+            "message": "Tu articulo fue enviado correctamente y quedo pendiente de revision editorial.",
         },
         status=status.HTTP_201_CREATED,
     )

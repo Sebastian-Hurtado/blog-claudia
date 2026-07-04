@@ -10,6 +10,10 @@ from .wagtail_views import (
     ConsultationRequestDetailView,
     ConsultationRequestListView,
     ConsultationRequestUpdateView,
+    GuestPostCreateDraftView,
+    GuestPostSubmissionDetailView,
+    GuestPostSubmissionListView,
+    GuestPostSubmissionUpdateView,
 )
 
 
@@ -46,6 +50,26 @@ def register_blog_admin_urls():
             ConsultationRequestUpdateView.as_view(),
             name="blog_consultation_update",
         ),
+        path(
+            "guest-posts/",
+            GuestPostSubmissionListView.as_view(),
+            name="blog_guest_post_list",
+        ),
+        path(
+            "guest-posts/<int:submission_id>/",
+            GuestPostSubmissionDetailView.as_view(),
+            name="blog_guest_post_detail",
+        ),
+        path(
+            "guest-posts/<int:submission_id>/update/",
+            GuestPostSubmissionUpdateView.as_view(),
+            name="blog_guest_post_update",
+        ),
+        path(
+            "guest-posts/<int:submission_id>/create-draft/",
+            GuestPostCreateDraftView.as_view(),
+            name="blog_guest_post_create_draft",
+        ),
     ]
 
 
@@ -66,4 +90,14 @@ def register_consultation_menu_item():
         reverse("blog_consultation_list"),
         icon_name="mail",
         order=860,
+    )
+
+
+@hooks.register("register_admin_menu_item")
+def register_guest_post_menu_item():
+    return MenuItem(
+        "Publicaciones invitadas",
+        reverse("blog_guest_post_list"),
+        icon_name="doc-full",
+        order=870,
     )

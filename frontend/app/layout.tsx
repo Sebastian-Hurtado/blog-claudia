@@ -16,9 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blog Claudia | Dra. en Derecho",
+  title: "Claudia Castellanos",
   description:
     "Blog profesional de Claudia — Abogada y Profesora especializada en Derecho.",
+  icons: {
+    icon: "/logo-blog.png",
+    shortcut: "/logo-blog.png",
+    apple: "/logo-blog.png",
+  },
 };
 
 export default function RootLayout({

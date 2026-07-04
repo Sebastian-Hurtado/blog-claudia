@@ -1,0 +1,68 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block title %}Publicaciones invitadas{% endblock %}
+
+{% block content %}
+    <div class="nice-padding">
+        <div class="w-flex w-items-center w-gap-4 w-mb-8">
+            {% icon name="doc-full" classname="w-text-primary" %}
+            <div>
+                <h1 class="w-m-0">Publicaciones invitadas</h1>
+                <p class="w-m-0 w-text-meta">
+                    Revisa propuestas enviadas por usuarios autenticados con Google.
+                </p>
+            </div>
+        </div>
+
+        <form method="get" class="w-grid w-gap-4 md:w-grid-cols-[1fr_220px_auto] w-mb-8">
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                placeholder="Buscar por nombre, email o titulo"
+                class="w-w-full"
+            />
+            <select name="status">
+                <option value="">Todos los estados</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="button button-primary">Filtrar</button>
+        </form>
+
+        {% if submissions %}
+            <div class="w-space-y-4">
+                {% for submission in submissions %}
+                    <article class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                        <div class="w-flex w-items-start w-justify-between w-gap-6">
+                            <div class="w-space-y-2">
+                                <p class="w-m-0 w-text-text-label">
+                                    <strong>{{ submission.title }}</strong>
+                                </p>
+                                <p class="w-m-0 w-text-sm w-text-text-label">
+                                    {{ submission.full_name }} ({{ submission.email }})
+                                    {% if submission.publish_anonymously %}- anonima publicamente{% endif %}
+                                </p>
+                                <p class="w-m-0 w-text-sm w-text-text-meta">
+                                    <strong>Estado:</strong> {{ submission.get_status_display }} |
+                                    <strong>Fecha:</strong> {{ submission.created_at|date:"d/m/Y H:i" }}
+                                </p>
+                                <p class="w-m-0 w-text-text-label">{{ submission.summary|truncatechars:180 }}</p>
+                            </div>
+
+                            <a href="{% url 'blog_guest_post_detail' submission.id %}" class="button button-secondary">
+                                Ver detalle
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="w-text-text-meta">No hay publicaciones invitadas con los filtros actuales.</p>
+        {% endif %}
+    </div>
+{% endblock %}

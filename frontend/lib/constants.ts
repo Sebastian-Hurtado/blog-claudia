@@ -8,8 +8,8 @@ import type { NavLink, SocialLink } from "./types";
 
 /** Informacion del sitio */
 export const SITE_CONFIG = {
-  name: "Blog",
-  owner: "Claudia",
+  name: "Claudia Castellanos",
+  owner: "Claudia Castellanos",
   title: "Dra. en Derecho",
   description:
     "Blog profesional de Claudia - Abogada y Profesora especializada en Derecho.",
@@ -20,12 +20,13 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Inicio", href: "/inicio" },
   { label: "Blog", href: "/blog" },
   { label: "Madres Comunitarias", href: "/madres-comunitarias" },
-  { label: "Reforma de trabajo", href: "/reforma-de-trabajo" },
+  { label: "Reforma Laboral", href: "/reforma-de-trabajo" },
   {
     label: "Personas privadas de la libertad",
     href: "/persona-privadas-de-la-libertad",
   },
   { label: "Consultoria", href: "/consultoria" },
+  { label: "Publicar", href: "/publicar" },
   { label: "Sobre mi", href: "/sobre-mi" },
   { label: "Contacto", href: "/contacto" },
 ];

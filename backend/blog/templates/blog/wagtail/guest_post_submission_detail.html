@@ -1,0 +1,109 @@
+{% extends "wagtailadmin/base.html" %}
+{% load wagtailadmin_tags %}
+
+{% block title %}Detalle de publicacion invitada{% endblock %}
+
+{% block content %}
+    <div class="nice-padding">
+        <div class="w-flex w-items-center w-justify-between w-gap-4 w-mb-8">
+            <div>
+                <h1 class="w-m-0">Detalle de publicacion invitada</h1>
+                <p class="w-m-0 w-text-meta">
+                    {{ submission.title }} - {{ submission.full_name }}
+                </p>
+            </div>
+            <a href="{% url 'blog_guest_post_list' %}" class="button button-secondary">Volver</a>
+        </div>
+
+        <div class="w-grid w-gap-8 lg:w-grid-cols-[1.35fr_0.85fr]">
+            <section class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                <div class="w-space-y-3">
+                    <p class="w-m-0 w-text-text-label"><strong>Titulo:</strong> {{ submission.title }}</p>
+                    <p class="w-m-0 w-text-text-label"><strong>Autor real:</strong> {{ submission.full_name }} ({{ submission.email }})</p>
+                    <p class="w-m-0 w-text-text-label">
+                        <strong>Autor publico:</strong> {{ submission.public_author_name }}
+                    </p>
+                    <p class="w-m-0 w-text-text-label">
+                        <strong>Tags sugeridos:</strong>
+                        {% if submission.suggested_tags %}{{ submission.suggested_tags }}{% else %}Sin sugerencias{% endif %}
+                    </p>
+                    <p class="w-m-0 w-text-text-meta">
+                        <strong>Creada:</strong> {{ submission.created_at|date:"d/m/Y H:i" }} |
+                        <strong>Actualizada:</strong> {{ submission.updated_at|date:"d/m/Y H:i" }}
+                    </p>
+
+                    <div class="w-mt-5">
+                        <strong class="w-text-text-label">Resumen</strong>
+                        <p class="w-mt-2 w-mb-0 w-text-text-label">{{ submission.summary }}</p>
+                    </div>
+
+                    <div class="w-mt-5">
+                        <strong class="w-text-text-label">Contenido</strong>
+                        <p class="w-mt-2 w-mb-0 w-whitespace-pre-line w-text-text-label">{{ submission.content }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="w-rounded-lg w-border w-border-border-furniture w-bg-surface-header w-p-6">
+                <form method="post" action="{% url 'blog_guest_post_update' submission.id %}" class="w-space-y-5">
+                    {% csrf_token %}
+                    <div>
+                        <label for="status"><strong>Estado</strong></label>
+                        <select id="status" name="status">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if submission.status == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="editorial_notes"><strong>Notas editoriales</strong></label>
+                        <textarea id="editorial_notes" name="editorial_notes" rows="7">{{ submission.editorial_notes }}</textarea>
+                    </div>
+
+                    <button type="submit" class="button button-secondary">Guardar estado</button>
+                </form>
+
+                <form method="post" action="{% url 'blog_guest_post_create_draft' submission.id %}" class="w-mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="editorial_notes" value="{{ submission.editorial_notes }}" />
+                    <button
+                        type="submit"
+                        class="button button-primary"
+                        {% if submission.created_blog_page_id %}disabled{% endif %}
+                    >
+                        Crear borrador de blog
+                    </button>
+                </form>
+
+                {% if submission.created_blog_page_id %}
+                    <p class="w-mt-3 w-text-sm w-text-text-meta">
+                        Borrador creado:
+                        <a href="{% url 'wagtailadmin_pages:edit' submission.created_blog_page.id %}">
+                            {{ submission.created_blog_page.title }}
+                        </a>
+                    </p>
+                {% endif %}
+
+                <div class="w-mt-8">
+                    <strong class="w-text-text-label">Adjuntos</strong>
+                    {% if submission.attachments.all %}
+                        <ul class="w-mt-3 w-space-y-2">
+                            {% for attachment in submission.attachments.all %}
+                                <li>
+                                    <a href="{{ attachment.file.url }}" target="_blank" rel="noopener noreferrer">
+                                        {{ attachment.filename }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="w-mt-2 w-text-text-meta">Esta publicacion no tiene adjuntos.</p>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </div>
+{% endblock %}

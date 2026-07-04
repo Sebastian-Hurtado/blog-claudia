@@ -16,6 +16,10 @@ def consultation_attachment_upload_to(instance, filename):
     return os.path.join("consultations", str(instance.request_id), filename)
 
 
+def guest_post_attachment_upload_to(instance, filename):
+    return os.path.join("guest-posts", str(instance.submission_id), filename)
+
+
 class BlogPageTag(TaggedItemBase):
     """Relacion intermedia para tags de BlogPage."""
 
@@ -56,6 +60,11 @@ class BlogPage(Page):
     date = models.DateField("Post date")
     intro = models.CharField(max_length=250, blank=True)
     body = RichTextField(blank=True)
+    author_display_name = models.CharField(
+        max_length=150,
+        blank=True,
+        help_text="Nombre publico del autor. Usar 'Autor anonimo' si la publicacion invitada debe ocultar identidad.",
+    )
     allow_comments = models.BooleanField(
         default=True,
         help_text="Permite que los visitantes envien comentarios a esta publicacion.",
@@ -80,6 +89,7 @@ class BlogPage(Page):
             [
                 FieldPanel("date"),
                 FieldPanel("tags"),
+                FieldPanel("author_display_name"),
                 FieldPanel("allow_comments"),
             ],
             heading="Informacion del post",
@@ -95,6 +105,7 @@ class BlogPage(Page):
         APIField("body"),
         APIField("main_image"),
         APIField("tags"),
+        APIField("author_display_name"),
         APIField("allow_comments"),
     ]
 
@@ -218,6 +229,72 @@ class ConsultationAttachment(models.Model):
         ordering = ["uploaded_at"]
         verbose_name = "Adjunto de consultoria"
         verbose_name_plural = "Adjuntos de consultoria"
+
+    @property
+    def filename(self):
+        return os.path.basename(self.file.name)
+
+    def __str__(self):
+        return self.filename
+
+
+class GuestPostSubmission(models.Model):
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pendiente"
+        IN_REVIEW = "in_review", "En revision"
+        DRAFT_CREATED = "draft_created", "Borrador creado"
+        REJECTED = "rejected", "Rechazada"
+
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    author_image = models.URLField(blank=True, default="")
+    title = models.CharField(max_length=200)
+    summary = models.CharField(max_length=250)
+    content = models.TextField()
+    suggested_tags = models.CharField(max_length=250, blank=True)
+    publish_anonymously = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    editorial_notes = models.TextField(blank=True)
+    created_blog_page = models.ForeignKey(
+        BlogPage,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="guest_submissions",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Publicacion invitada"
+        verbose_name_plural = "Publicaciones invitadas"
+
+    @property
+    def public_author_name(self):
+        return "Autor anonimo" if self.publish_anonymously else self.full_name
+
+    def __str__(self):
+        return f"{self.title} - {self.full_name}"
+
+
+class GuestPostAttachment(models.Model):
+    submission = models.ForeignKey(
+        GuestPostSubmission,
+        on_delete=models.CASCADE,
+        related_name="attachments",
+    )
+    file = models.FileField(upload_to=guest_post_attachment_upload_to)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["uploaded_at"]
+        verbose_name = "Adjunto de publicacion invitada"
+        verbose_name_plural = "Adjuntos de publicaciones invitadas"
 
     @property
     def filename(self):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Comment, ConsultationRequest
+from .models import Comment, ConsultationRequest, GuestPostSubmission
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -54,3 +54,50 @@ class ConsultationRequestUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConsultationRequest
         fields = ["status", "internal_notes"]
+
+
+class GuestPostSubmissionCreateSerializer(serializers.Serializer):
+    full_name = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    author_image = serializers.URLField(required=False, allow_blank=True, default="")
+    title = serializers.CharField(max_length=200)
+    summary = serializers.CharField(max_length=250)
+    content = serializers.CharField(min_length=1, max_length=20000)
+    suggested_tags = serializers.CharField(
+        max_length=250,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    publish_anonymously = serializers.BooleanField(default=False)
+    author_confirmed = serializers.BooleanField()
+
+    def validate_author_confirmed(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                "Debes confirmar que eres responsable del contenido enviado."
+            )
+        return value
+
+
+class GuestPostSubmissionListSerializer(serializers.ModelSerializer):
+    status_label = serializers.CharField(source="get_status_display", read_only=True)
+
+    class Meta:
+        model = GuestPostSubmission
+        fields = [
+            "id",
+            "title",
+            "status",
+            "status_label",
+            "editorial_notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+
+class GuestPostSubmissionUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuestPostSubmission
+        fields = ["status", "editorial_notes"]

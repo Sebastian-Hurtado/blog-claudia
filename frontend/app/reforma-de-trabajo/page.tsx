@@ -9,9 +9,9 @@ import { getBlogPostsByTag } from "@/lib/api";
    ============================================ */
 
 export const metadata = {
-  title: "Reforma de Trabajo | Claudia",
+  title: "Reforma Laboral | Claudia",
   description:
-    "Artículos y análisis sobre la reforma de trabajo.",
+    "Artículos y análisis sobre la reforma laboral.",
 };
 
 export default async function ReformaDeTrabajoPage() {
@@ -29,7 +29,7 @@ export default async function ReformaDeTrabajoPage() {
         {/* Encabezado */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold text-heading mb-3">
-            Reforma de Trabajo
+            Reforma Laboral
           </h1>
           <p className="text-body max-w-2xl mx-auto">
             Artículos y análisis sobre la reforma laboral, sus implicaciones

@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         hostname: "lh3.googleusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "claudia-castellanos.com",
+        pathname: "/media/**",
+      },
     ],
   },
 };

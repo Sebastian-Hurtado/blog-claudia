@@ -35,6 +35,7 @@ export interface BlogPost extends WagtailPage {
   body: string;
   main_image: WagtailImage | null;
   tags: string[];
+  author_display_name: string;
   allow_comments: boolean;
 }
 
@@ -103,6 +104,22 @@ export interface ConsultationRequestSummary {
   status: "pending" | "in_review" | "resolved" | "rejected";
   status_label: string;
   created_at: string;
+}
+
+export interface GuestPostSubmissionResponse {
+  id: number;
+  status: "pending" | "in_review" | "draft_created" | "rejected";
+  message: string;
+}
+
+export interface GuestPostSubmissionSummary {
+  id: number;
+  title: string;
+  status: "pending" | "in_review" | "draft_created" | "rejected";
+  status_label: string;
+  editorial_notes: string;
+  created_at: string;
+  updated_at: string;
 }
 
 /** Payload para crear un comentario */

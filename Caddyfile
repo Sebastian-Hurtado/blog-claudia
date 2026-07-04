@@ -1,4 +1,8 @@
-:80 {
+www.claudia-castellanos.com {
+    redir https://claudia-castellanos.com{uri} permanent
+}
+
+claudia-castellanos.com {
     encode gzip
 
     handle /static/* {
@@ -32,6 +36,10 @@
     }
 
     handle /api/consultation-requests* {
+        reverse_proxy backend:8000
+    }
+
+    handle /api/guest-post-submissions* {
         reverse_proxy backend:8000
     }
 

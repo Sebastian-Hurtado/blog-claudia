@@ -1,4 +1,5 @@
 import Container from "@/components/ui/Container";
+import Image from "next/image";
 
 export const metadata = {
   title: "Sobre mi | Claudia Milena Castellanos Avendaño",
@@ -225,13 +226,25 @@ export default function SobreMiPage() {
     <section className="py-16">
       <Container>
         <div className="max-w-5xl mx-auto">
-          <div className="bg-primary rounded-2xl p-10 md:p-14 mb-10 text-center shadow-lg">
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-              Claudia Milena Castellanos Avendaño
-            </h1>
-            <p className="text-white/80 text-lg font-medium tracking-wide">
-              Abogada | Magister en Derecho | Docente universitaria
-            </p>
+          <div className="grid items-center gap-8 rounded-2xl bg-primary p-8 md:grid-cols-[0.9fr_1.1fr] md:p-10 mb-10 shadow-lg">
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-xl bg-white/10 shadow-xl md:max-w-none">
+              <Image
+                src="/foto.png"
+                alt="Claudia Milena Castellanos Avendaño"
+                fill
+                priority
+                sizes="(min-width: 768px) 360px, 90vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
+                Claudia Milena Castellanos Avendaño
+              </h1>
+              <p className="text-white/80 text-lg font-medium tracking-wide">
+                Abogada | Magister en Derecho | Docente universitaria
+              </p>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-md p-8 md:p-10 mb-10 border border-border">
@@ -266,7 +279,7 @@ export default function SobreMiPage() {
                 +57 321 481 3362
               </p>
               <p className="text-body text-sm leading-relaxed">
-                iuscolombia71@gmail.com
+                claudiacatellanos780@gmail.com
               </p>
             </div>
 
