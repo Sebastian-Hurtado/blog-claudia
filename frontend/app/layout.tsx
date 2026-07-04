@@ -34,11 +34,11 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full flex flex-col`}
       >
         <AuthProvider>
           <Header />
-          <main className="w-full">{children}</main>
+          <main className="w-full flex-1">{children}</main>
           <Footer />
         </AuthProvider>
       </body>
