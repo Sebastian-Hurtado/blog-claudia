@@ -44,7 +44,7 @@ export default function MobileMenu() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className={`px-6 py-3 text-sm font-medium tracking-wide uppercase transition-colors duration-200 ${
+                  className={`px-6 py-3 text-sm font-medium tracking-normal transition-colors duration-200 ${
                     isActive
                       ? "text-gold bg-primary"
                       : "text-white hover:bg-primary hover:text-gold"
