@@ -1,6 +1,6 @@
-# Claudia Castellanos - Blog profesional y CMS
+# Blog y CMS
 
-Sitio web profesional desarrollado para Claudia Castellanos, abogada y docente, con un frontend publico en Next.js y un CMS administrativo en Django/Wagtail. El proyecto permite publicar noticias, articulos de blog, contenidos por secciones tematicas, comentarios moderados, solicitudes de consultoria y publicaciones invitadas enviadas por usuarios autenticados con Google.
+Sitio web desarrollado para Claudia Castellanos, abogada y docente, con un frontend publico en Next.js y un CMS administrativo en Django/Wagtail. El proyecto permite publicar noticias, articulos de blog, contenidos por secciones tematicas, comentarios moderados, solicitudes de consultoria y publicaciones invitadas enviadas por usuarios autenticados con Google.
 
 Sitio en produccion: https://claudia-castellanos.com
 
